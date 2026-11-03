@@ -1,16 +1,16 @@
 {
-  "release": "微信bot v6.33",
+  "release": "微信bot v7.0.0",
   "variant": "clean",
   "files": [
     {
       "path": "AGENTS.md",
-      "bytes": 3003,
-      "sha256": "1c4d6180dfcd321f1603ce5412d004295325710e950298edd134053e9fab8fca"
+      "bytes": 2980,
+      "sha256": "1cf3f9ccfbba8a3f61e883e22ccb8c36994bc0564f7661163c93be37425958fa"
     },
     {
       "path": "CHANGES.md",
-      "bytes": 52038,
-      "sha256": "01cf36b87eea610bb32f80b79a2bbb5030fb4f1a1ec088784de5425add6fb7b1"
+      "bytes": 51598,
+      "sha256": "f40151f1201b402db113b48ffadcd900d2a39457dbd8ddd4367472d6e0f2d8b7"
     },
     {
       "path": "DISCLAIMER.md",
@@ -303,9 +303,9 @@
       "sha256": "5866866a7bec1651b33bf0f1fda0271874f9cf88cefd404118a5cc7f4a1f10b0"
     },
     {
-      "path": "docs/v6.33验收报告.md",
-      "bytes": 7782,
-      "sha256": "ada89dd6efa9ad6b6cdcb83a19d7261ddbbad95d9c998fdd5477d291316e4787"
+      "path": "docs/v7.0.0验收报告.md",
+      "bytes": 7783,
+      "sha256": "382a75f3feba95418fd8cd16d5f80abeb25f3cae9afe33923ad400a8674bc17f"
     },
     {
       "path": "open_panels.bat",
@@ -339,13 +339,13 @@
     },
     {
       "path": "portable/astrbot_plugin_wechatbot_profile/main.py",
-      "bytes": 10897,
-      "sha256": "4f9067823e04df9be506f8be34009e7588bf33fb4b0daffa589b46f6d58f0ec5"
+      "bytes": 10896,
+      "sha256": "82ae9e3d0a50bb2e6f3351fc6cd4e5330e819ac2e6b31af887d0d6183c19dd5a"
     },
     {
       "path": "portable/astrbot_plugin_wechatbot_profile/metadata.yaml",
-      "bytes": 225,
-      "sha256": "3c2261660ea596af13b8704890d86b8ebaa8d383251c78786d2af7e0a14e0199"
+      "bytes": 218,
+      "sha256": "9f69d5707aa300fe56904cc4f7f160fd08860b2beddf8b03b78e02a5e8333b37"
     },
     {
       "path": "portable/astrbot_plugin_wechatbot_profile/policy.py",
@@ -369,8 +369,8 @@
     },
     {
       "path": "portable/collect_diagnostics.py",
-      "bytes": 9660,
-      "sha256": "fb51d68f8c7013e1dfc4bb261e946b36c76b5679766c6af1a8137f1b25d4f596"
+      "bytes": 9661,
+      "sha256": "eed18fe0ab515f3202f7ef6eb80ab7a47da20b7850a3982fe3d90dd0ba21b8fa"
     },
     {
       "path": "portable/console_control.py",
@@ -2824,8 +2824,8 @@
     },
     {
       "path": "tests/preview_panel.py",
-      "bytes": 6136,
-      "sha256": "561fed53fe2e7b3a5c1c75360af82c1f6e1593cd371806c62abb20f893f157f7"
+      "bytes": 6047,
+      "sha256": "aff770a910701d8495c8e4031c476c22197ed8bf1f90f541b0bfd515e698cad6"
     },
     {
       "path": "tests/test_astrbot_lifecycle.py",
@@ -3349,8 +3349,8 @@
     },
     {
       "path": "wechat-weflow-bridge-ob11/main.py",
-      "bytes": 31719,
-      "sha256": "e8d3420e0e7ea81a09a5666fbd48fa75281b488d2b3ee924586bc24ca8463888"
+      "bytes": 31093,
+      "sha256": "f24032c2f38a94c01238360650b738e3e8c390d828159b3d85016139d6aee206"
     },
     {
       "path": "wechat-weflow-bridge-ob11/media_policy.py",
@@ -3434,13 +3434,13 @@
     },
     {
       "path": "wechat-weflow-bridge-ob11/ob_client.py",
-      "bytes": 5966,
-      "sha256": "7e14ffacb2c0213caf9b418b36d5da178289f31714b435a177d6cff3854dfd6d"
+      "bytes": 5967,
+      "sha256": "771f053843c637801896df77ef7d1ccad6e15abb39162dc2fb58b2d15b70d042"
     },
     {
       "path": "wechat-weflow-bridge-ob11/ob_protocol.py",
-      "bytes": 63862,
-      "sha256": "97fef851e06b1dad62e5c4f16984a779e233bf458b6d96f399070f0ebb190042"
+      "bytes": 62716,
+      "sha256": "3db3b8c24c6b865d77c6052d59f37642a914b89e33d77414e6e1de79fb2e0af0"
     },
     {
       "path": "wechat-weflow-bridge-ob11/outbox.py",

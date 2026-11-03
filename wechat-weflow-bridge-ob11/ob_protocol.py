@@ -1053,7 +1053,7 @@ async def _handle_ob_api(data, ws=None, generation=None):
             if action=="get_login_info":
                 result={"user_id":state._self_id_int,"nickname":config.BOT_NICKNAMES[0] if config.BOT_NICKNAMES else "微信助手"}
             elif action=="get_version_info":
-                result={"app_name":"微信bot","app_version":"6.33","protocol_version":"v11"}
+                result={"app_name":"微信bot","app_version":"7.0.0","protocol_version":"v11"}
             elif action=="get_status":
                 result={"online":state.running and state._ob_ws_ready.is_set(),"good":state.running and not state.paused.is_set()}
             elif action=="get_friend_list":

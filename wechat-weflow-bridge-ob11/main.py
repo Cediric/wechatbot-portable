@@ -114,7 +114,7 @@ def get_status():
     result={"running":state.running,"paused":state.paused.is_set(),"connected":state._ob_ws_ready.is_set(),
             "weflow_connected":bool(state.bridge_instance and getattr(state.bridge_instance,"_sse_session",None)),
             "ob_connected":state._ob_ws_ready.is_set(),"mode":state.group_reply_mode,"group_reply_mode":state.group_reply_mode,
-            "caption_provider":"main_multimodal","sender":"UIA","version":"6.33",
+            "caption_provider":"main_multimodal","sender":"UIA","version":"7.0.0",
             "uptime":round(time.time()-state.started_at,1) if state.started_at else 0,
             "memory_count":state.memory_store.count() if state.memory_store else 0,
             "autopilot_enabled":bool(state.autopilot and state.autopilot.enabled),

@@ -39,7 +39,7 @@ def main(argv=None):
         state.memory_store.add_memory(f"预览会话 {i+1}：更喜欢自然短句与完整解释",source="测试数据",session_id=f"demo-{i%3}",
             actor_id="wxid_demo_actor" if i==0 else "", evidence=f"预览会话 {i+1}：更喜欢自然短句与完整解释" if i==0 else "",
             message_id="preview-message-0001" if i==0 else "", provenance="extracted" if i==0 else "manual")
-    status={"running":True,"paused":False,"connected":True,"weflow_connected":True,"ob_connected":True,"group_reply_mode":"mention","version":"6.33",
+    status={"running":True,"paused":False,"connected":True,"weflow_connected":True,"ob_connected":True,"group_reply_mode":"mention","version":"7.0.0",
             "memory_count":65,"metrics":{"received":128,"forwarded":128,"sent":96,"send_failed":0,"cancelled":0},
             "latency":{"median_ms":286,"p95_ms":740,"samples":96},"outbox":{"pending":0,"limit":10000},"send_queue":{"pending":0,"limit":128},
             "name_sync":{"status":"ok","last_sync":time.time(),"interval":3,"revision":8,"changed":2,"contacts":35,"sessions":18},

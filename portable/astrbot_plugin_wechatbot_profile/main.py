@@ -57,7 +57,7 @@ def bind_context_guard(provider, profile):
 class ProfileCapacityReached(ValueError):
     pass
 
-@register("wechatbot_profile", "微信bot", "本包主模型实时配置与上下文隔离", "6.33.0")
+@register("wechatbot_profile", "微信bot", "本包主模型实时配置与上下文隔离", "7.0.0")
 class WechatbotProfile(Star):
     def __init__(self, context: Context):
         super().__init__(context)

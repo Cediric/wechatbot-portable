@@ -16,7 +16,7 @@ log=logging.getLogger("ob11-bridge")
 def _connect_kwargs(connect):
     parameters=inspect.signature(connect).parameters
     key="additional_headers" if "additional_headers" in parameters else "extra_headers"
-    return {key:{"X-Self-ID":str(state._self_id_int),"X-Client-Role":"Universal","User-Agent":"WeChatBot/6.33"},
+    return {key:{"X-Self-ID":str(state._self_id_int),"X-Client-Role":"Universal","User-Agent":"WeChatBot/7.0.0"},
             "ping_interval":20,"ping_timeout":20,"open_timeout":10,"close_timeout":3,"max_size":config.MEDIA_MAX_MB*1024*1024*2,"max_queue":16}
 
 def _active(generation):

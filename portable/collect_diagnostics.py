@@ -182,7 +182,7 @@ def collect():
     files = {"portable/runtime/startup-error.txt": RUNTIME / "startup-error.txt",
              "wechat-weflow-bridge-ob11/startup_astrbot.log": BRIDGE / "startup_astrbot.log",
              "wechat-weflow-bridge-ob11/startup_bridge.log": BRIDGE / "startup_bridge.log"}
-    return {"release": "微信bot v6.33", "purpose": "read_only_startup_and_wechat_metadata",
+    return {"release": "微信bot v7.0.0", "purpose": "read_only_startup_and_wechat_metadata",
             "python_version": sys.version.split()[0], "wechat": wechat_build(), "weflow_extension": weflow_extension(bridge),
             "services": {"bridge": service_port("bridge", bridge.get("web_port", 8766)),
                          "astrbot": service_port("astrbot", port)},
