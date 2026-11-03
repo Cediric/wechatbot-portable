@@ -1,13 +1,33 @@
-# 微信bot 桥接 v6.32
+# 微信消息桥接
 
-WeFlow SSE 接收，OneBot v11 反向WebSocket连接AstrBot，主窗口UIA发送。启动与完整功能见[项目说明](../README.md)、[便携启动](../portable/README.md)。默认WeFlow5031、桥接8766、AstrBotWebUI6185、OneBot11229。
+桥接从 WeFlow 的本地接口和 SSE 主动推送接收微信消息，将私聊和群聊事件通过 OneBot v11 反向 WebSocket 交给 AstrBot。收到回复后，桥接核对目标会话，通过微信桌面主窗口的 UI 自动化（UIA）发送。正常使用从根目录的 **一键启动.bat** 进入。[项目首页](../README.md) · [便携版使用指南](../portable/README.md)
 
-聊天流程不调用额外caption模型。主模型须视觉能力；视频/动画采用有界采样，不含视频音轨。独立/远端AstrBot需自行安装随包配置插件、使用本包平台配置并保证附件路径双方可访问，不能仅改WebSocket地址使远端读取Windows文件。
+## 默认连接
 
-首次运行时从示例创建缺失配置。保存设置时，留空的 API Key 会保留原值。主模型热更新只对本包管理的平台生效。修改 `web_port` 或 `memory_db_path` 后须完整重启，更新连接和身份设置会触发重连。[完整字段](../docs/配置字段.md)
+| 组件 | 默认地址 | 用途 |
+| --- | --- | --- |
+| WeFlow API | `http://127.0.0.1:5031` | 接收消息，读取消息所属账号与会话 |
+| AstrBot OneBot v11 | `ws://127.0.0.1:11229/ws` | 桥接连接 AstrBot，传递事件和回复 |
+| 桥接控制面板 | `http://127.0.0.1:8766` | 配置模型、朋友圈、记忆与发送设备 |
+| AstrBot 控制面板 | `http://127.0.0.1:6185` | 管理 AstrBot 实例 |
 
-主模型使用真实SSE，完整短句逐步回复，推理保留在内部请求中、不发送到微信。普通补充消息沿用同会话缓冲，等当前回复交付结束再处理，明确停止要求仍取消旧轮；流式序号去重，发送结果不确定时停止。上下文上限包含系统提示、角色卡、媒体、工具和输出预留，接近预算时摘要完整旧轮次。记忆抽取独立处理单条原消息，默认8,000字符、最大32,000；需要缩减时本机选择完整原文片段，证据必须逐字对应，未完成的截断尾句不作长期证据。详见[流式与上下文设置](../docs/streaming-context.md)。
+如将 AstrBot 部署到另一台机器，还需安装随包的 `astrbot_plugin_wechatbot_profile` 插件，配置对应平台，并让双方都能读取附件路径。
 
-主要模块：bridge_core顺序/身份，multimodal采样，model_client独立角色/思考/预算，memory_store证据/归属，moments_interactions逐条查看/决策/执行，tools调用主模型创作生图提示词，reference_store图库，voice_cloning音色，uia_sender主窗口，web_panel本机登录态和CSRF。
+## 配置与数据
 
-运行数据在data内，包括记忆、身份、outbox、朋友圈核对和素材。干净包排除data、config.json、日志、录音、私人人设、AstrBot密码；自用包仅加入明确选择的配置、角色资料与素材，不复制已有聊天数据库或登录数据。自用配置可能含API密钥，应仅供本人使用。完整测试数、ZIP内容审查与交付SHA见本版验收记录。
+桥接首次启动时会根据 `config.example.json` 创建 `config.json`。可在面板修改日常设置。主模型配置从下一次请求生效。修改 `web_port` 或 `memory_db_path` 后需完整重启。默认的 `data/` 保存会话记忆、身份映射、待发送记录和朋友圈互动状态。[完整配置字段](../docs/配置字段.md)
+
+WeFlow、桥接和随包 AstrBot 默认在本机通信。生成回复时，所配置的模型服务会收到本次请求所需的聊天上下文和媒体。图片、动画和视频采样画面由主模型直接读取，对应模型需支持图像输入。启用生图、语音或联网检索时，相关内容也会按所用功能发送至相应服务。
+
+主模型可以边生成边按完整短句分段发送。发送中断时，可在「会话工作台」查看运行状态，并与目标会话中的实际消息对照。[流式回复与上下文](../docs/streaming-context.md) · [微信 UIA 兼容性](../docs/微信UIA兼容性.md)
+
+## 运行回归测试
+
+在项目根目录打开 PowerShell，用已安装桥接依赖的 Python 运行：
+
+```powershell
+$env:PYTHONPATH = "wechat-weflow-bridge-ob11"
+python -B -m unittest discover -s tests -q
+```
+
+只检查朋友圈可在命令末尾加上 `-p "test_moments_*.py"`。在已启动过的便携包中，可将 `python` 换成 `.\portable\runtime\bridge-venv\Scripts\python.exe`。
