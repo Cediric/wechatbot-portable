@@ -1,0 +1,17 @@
+# 预打包运行时与第三方二进制：体积过大且含上游许可证，随 Release 便携包分发
+portable/vendor/
+
+# 运行产物与本地私有配置
+data/
+config.json
+bridge.log
+bridge.pid
+startup-error.txt
+dashboard-login.txt
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Python 缓存
+__pycache__/
+*.py[cod]

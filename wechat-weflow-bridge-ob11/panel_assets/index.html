@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="panel-csrf" content="__PANEL_CSRF__">
+  <meta name="color-scheme" content="light">
+  <title>微信bot · 会话工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23256d65'/%3E%3Cpath d='M43 13A23 23 0 1 0 51 47 22 22 0 0 1 43 13Z' fill='%23f7fbf9'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/panel.css">
+  <script src="/assets/panel.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到工作区</a>
+  <aside id="sidebar" class="sidebar">
+    <a class="brand" href="#workspace" aria-label="微信bot 工作台"><span class="moon-mark" aria-hidden="true">☾</span><span><strong>微信bot</strong><small>WECHAT BOT</small></span></a>
+    <div class="sidebar-label">工作台</div>
+    <nav aria-label="主要导航">
+      <button class="nav-item active" data-page="workspace" aria-current="page"><span aria-hidden="true">◉</span>会话工作台</button>
+      <button class="nav-item" data-page="models"><span aria-hidden="true">◇</span>模型工作室</button>
+      <button class="nav-item" data-page="moments"><span aria-hidden="true">◷</span>朋友圈轮询</button>
+      <button class="nav-item" data-page="media"><span aria-hidden="true">▧</span>生图与参考图</button>
+      <button class="nav-item" data-page="voice"><span aria-hidden="true">♫</span>声音与克隆</button>
+      <button class="nav-item" data-page="settings"><span aria-hidden="true">⌘</span>全部设置<span id="dirtyDot" class="dirty-dot" hidden></span></button>
+      <button class="nav-item" data-page="memory"><span aria-hidden="true">▤</span>共享记忆<span id="navMemoryCount" class="nav-count">—</span></button>
+      <button class="nav-item" data-page="diagnostics"><span aria-hidden="true">⌕</span>发送与设备</button>
+      <button class="nav-item" data-page="logs"><span aria-hidden="true">≡</span>运行日志</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="local-indicator"></span>本机工作空间<small>消息有来处，回复有分寸。</small></div>
+  </aside>
+  <main id="main" class="main">
+    <header class="topbar"><div class="breadcrumb"><span>微信bot</span><span aria-hidden="true">/</span><strong id="pageTitle">会话工作台</strong></div><div class="top-meta"><span id="clock">—</span><span id="connectionBadge" class="badge neutral">连接面板中</span></div></header>
+    <div id="previewNotice" class="notice preview-notice" role="status" hidden><strong>合成数据预览 · 未连接微信</strong><span>此处仅演示界面，不代表实机状态或发送结果。</span></div>
+    <div id="connectionError" class="notice error" role="alert" hidden><span id="connectionErrorText"></span><button id="retryConnection" class="text-button">重新连接</button></div>
+    <div id="restoreNotice" class="notice error" role="alert" hidden><span id="restoreNoticeText">微信临时状态尚未确认还原。</span><button id="retryRestore" class="text-button" data-action="stop">重试还原</button></div>
+    <div id="autopilotPendingNotice" class="notice pending-notice" role="status" hidden><span>朋友圈有待核对的发表记录，自动发表与生图已暂停。</span><button class="text-button" data-go="workspace">查看并核对 ↗</button></div>
+    <div id="momentsInteractionNotice" class="notice pending-notice" role="status" hidden><span>朋友圈互动有待核对记录，已暂停后续互动。</span><button class="text-button" data-go="workspace">查看并核对 ↗</button></div>
+
+    <section id="page-workspace" class="page active" aria-labelledby="workspaceTitle">
+      <div class="page-heading"><div><p class="eyebrow">CONVERSATION WORKSPACE</p><h1 id="workspaceTitle">让每一次回应，<br class="mobile-only">都恰如其分。</h1><p class="subtle">接收、思考、发送，在同一个地方看清。</p><p id="serviceControlNote" class="subtle" role="status">停止机器人后可在面板再次启动。更换或删除本包前，请选“完全退出”。</p></div>
+        <div class="run-controls"><button id="btnStart" class="button primary" data-action="start">启动机器人</button><button id="btnPause" class="button" data-action="pause" disabled>暂停任务</button><button id="btnStop" class="button quiet" data-action="stop" disabled>停止机器人</button><button id="btnExit" class="button quiet" data-action="exit" title="退出本包的机器人、AstrBot 和面板" disabled>完全退出</button></div></div>
+      <div class="workbench-grid">
+        <div class="workbench-main">
+          <article id="autopilotPendingCard" class="card pending-card" aria-labelledby="autopilotPendingTitle" hidden>
+            <div class="card-head"><h2 id="autopilotPendingTitle">朋友圈待核对</h2><span class="badge warning">暂停自动发表</span></div>
+            <p id="autopilotPendingHelp" class="subtle">请先打开微信朋友圈，按正文、时间与配图核对这条动态是否已发表，再在这里记录结果。</p>
+            <p id="autopilotPendingMeta" class="pending-meta"></p>
+            <pre id="autopilotPendingContent" class="pending-content" aria-label="待核对朋友圈正文"></pre>
+            <p id="autopilotPendingError" class="pending-error" hidden></p>
+            <div class="pending-actions"><button id="autopilotPublished" class="button" type="button">已在微信确认发表</button><button id="autopilotNotPublished" class="button" type="button">确认未发表</button></div>
+            <p class="small subtle">核对后仅恢复正常周期的决策，不会立即重发这条动态。</p>
+          </article>
+          <article class="card pipeline-card"><div class="card-head"><div><p class="eyebrow">MESSAGE FLOW</p><h2>一条消息的旅程</h2></div><span id="bridgeState" class="badge neutral">读取状态中</span></div><div class="pipeline">
+            <div class="flow-node" id="flowWeChat"><span class="flow-icon">微</span><strong>微信 · WeFlow</strong><span id="weflowState">等待连接</span></div><div class="flow-link" aria-hidden="true"></div>
+            <div class="flow-node" id="flowBrain"><span class="flow-icon">思</span><strong>AstrBot</strong><span id="obState">等待连接</span></div><div class="flow-link" aria-hidden="true"></div>
+            <div class="flow-node" id="flowSend"><span class="flow-icon">回</span><strong>微信发送</strong><span id="senderState">UIA 安全确认</span></div>
+          </div><div class="flow-foot"><span><i class="dot"></i><span id="modeDescription">仅在群聊被 @ 时回应</span></span><button class="text-button" id="btnMode">切换群聊模式 ↗</button></div><p id="messageCounters" class="small subtle">等待处理统计</p></article>
+          <div class="metrics-grid"><article class="metric"><span>发送队列</span><strong id="queueCount">—<small>条</small></strong><p id="queueDetail">等候状态上报</p></article><article class="metric"><span>发送调用用时</span><strong id="latencyValue">—<small>秒</small></strong><p id="latencyDetail">仅发送调用，不含模型等待</p></article><article class="metric"><span>可靠投递</span><strong id="deliveryCount">—<small>条</small></strong><p id="deliveryDetail">离线时保留，恢复后继续</p></article></div>
+          <article class="card response-performance" aria-labelledby="responsePerformanceTitle">
+            <div class="card-head"><div><p class="eyebrow">RESPONSE TIMING</p><h2 id="responsePerformanceTitle">回复耗时与运行状态</h2></div><span id="runtimeHealthBadge" class="badge neutral">等候状态</span></div>
+            <div class="performance-progress"><p id="sendProgress" class="small">等待队列状态。</p><p id="runtimeHealthDetail" class="small subtle">启动后显示运行与恢复状态。</p></div>
+            <div class="performance-table-wrap"><table class="performance-table"><caption class="small subtle">时间单位：秒；无样本时显示横线。</caption><thead><tr><th scope="col">阶段</th><th scope="col">最近</th><th scope="col">平均</th><th scope="col">百分之九十五分位</th><th scope="col">样本</th></tr></thead><tbody id="responseTimingRows"></tbody></table></div>
+            <p id="voiceCacheSummary" class="small subtle">语音缓存：尚无统计。</p>
+            <p class="small subtle performance-note">端到端从收到消息计至本机微信界面确认；不代表对方已收到。各项最多保留本次进程最近二百个样本；排队统计包含失败或取消任务，发送耗时只采纳本机确认。</p>
+          </article>
+          <article class="card moments-social-card" aria-labelledby="momentsInteractionTitle">
+            <div class="card-head"><div><p class="eyebrow">MOMENTS TOGETHER</p><h2 id="momentsInteractionTitle">朋友圈互动</h2></div><span id="momentsInteractionBadge" class="badge neutral">关闭</span></div>
+            <p class="subtle">定时刷新朋友圈，结合人设自行决定是否点赞、评论，或回复与自己相关的评论。</p>
+            <div class="moments-schedule"><p id="momentsInteractionPlan" class="small subtle">默认关闭；在设置中开启后生效。</p><p id="momentsInteractionNext" class="small subtle">下次浏览：等待启动</p></div>
+            <dl class="moments-counts" aria-label="今日朋友圈互动次数"><div><dt>点赞</dt><dd id="momentsLikeCount">0</dd></div><div><dt>评论</dt><dd id="momentsCommentCount">0</dd></div><div><dt>回复评论</dt><dd id="momentsReplyCount">0</dd></div></dl>
+            <p id="momentsInteractionResult" class="small subtle">尚未浏览朋友圈。</p>
+            <p id="momentsCheckStatus" class="small subtle" role="status" hidden></p>
+            <p id="momentsManualStatus" class="small" role="status" hidden></p>
+            <p id="momentsMediaStatus" class="small identity-warning" role="status" hidden></p>
+            <button id="momentsAccountSetting" class="text-button" data-setting="bot_wxid" type="button" hidden>配置机器人账号 ↗</button>
+            <p id="momentsReplyIdentityHint" class="moments-identity-hint small subtle" hidden></p>
+            <div class="moments-social-actions"><button id="momentsBrowseNow" class="button" type="button" disabled>立即浏览一次</button><button class="text-button" data-setting="moments_interactions_enabled">调整互动规则 ↗</button></div>
+            <div id="momentsInteractionPending" class="moments-review" hidden>
+              <h3>互动待核对</h3><p id="momentsInteractionPendingHelp" class="small subtle">请在微信核对这次互动，再记录结果。</p>
+              <p id="momentsInteractionPendingMeta" class="pending-meta"></p><pre id="momentsInteractionPendingContent" class="pending-content" aria-label="待核对的动态与评论"></pre><p id="momentsInteractionPendingError" class="pending-error" hidden></p>
+              <div class="pending-actions"><button id="momentsInteractionCompleted" class="button" type="button">已在微信确认完成</button><button id="momentsInteractionNotCompleted" class="button" type="button">确认未完成</button></div><p class="small subtle">核对后不会立即重复这次互动。</p>
+            </div>
+            <details class="moments-history"><summary class="text-button">最近的互动记录</summary><div id="momentsInteractionRecent" class="moments-recent"><p class="small subtle">尚无互动记录。</p></div></details>
+          </article>
+          <article class="card activity-card"><div class="card-head"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>会话动态</h2></div><span id="activityHint" class="subtle small">最近的处理记录</span></div><div id="activityList" class="activity-list"><div class="empty"><span class="empty-symbol">☾</span><strong>等待第一条消息</strong><p>启动桥接后，消息的处理进度会出现在这里。</p></div></div></article>
+        </div>
+        <aside class="workbench-aside">
+          <article class="companion-card"><div class="companion-orbit" aria-hidden="true"><span>☾</span></div><p class="eyebrow">CONVERSATION COMPANION</p><h2 id="companionName">微信bot</h2><p id="companionState">安静等候下一次对话。</p><div class="companion-line"><span>回复节奏</span><strong id="rhythmLabel">自然短句</strong></div><div class="companion-line"><span>记住的事</span><strong id="memoryCount">— 条</strong></div></article>
+          <article class="card feature-card"><div class="card-head"><h2>对话习惯</h2><button class="text-button" data-go="settings">调整 ↗</button></div><div id="featureToggles" class="feature-toggles"></div><p class="small subtle">开关保存后即时同步；连接地址等设置会自动重连。</p></article>
+          <article class="card"><div class="card-head"><h2>视频和点歌</h2><button class="text-button" data-setting="bili_video_enabled">设置 ↗</button></div><p class="subtle">发来哔哩哔哩链接一起看，或发“点歌 晴天”找歌。</p><p id="biliShareState" class="small subtle" role="status">正在读取主动分享状态。</p><button class="text-button" data-setting="bili_share_enabled">调整主动分享 ↗</button></article>
+          <article class="card autopilot-card"><div class="card-head"><h2>朋友圈手记</h2><span id="autopilotBadge" class="badge neutral">关闭</span></div><p id="autopilotResult" class="subtle">启用后，会结合近期记忆决定是否分享生活片段。</p><p id="autopilotSchedule" class="small subtle" role="status"></p><button class="text-button" data-setting="autopilot_enabled">配置自主朋友圈 ↗</button></article>
+        </aside>
+      </div>
+    </section>
+
+    <section id="page-settings" class="page" aria-labelledby="settingsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">PREFERENCES</p><h1 id="settingsTitle">每个细节，都由你决定。</h1><p class="subtle">连接、人设、拟真、媒体和工具，全部配置都在这里。</p></div><button id="reloadConfig" class="button">重新载入</button></div>
+      <div class="settings-tools"><label class="search"><span aria-hidden="true">⌕</span><input id="configSearch" type="search" placeholder="搜索设置，例如语音、超时、人设" aria-label="搜索配置"></label><span id="configSummary" class="subtle small">加载配置中</span></div>
+      <div class="settings-layout"><nav id="settingsNav" class="settings-nav" aria-label="配置分组"></nav><form id="settingsForm" class="settings-form"><div class="empty"><strong>正在读取配置</strong><p>所有配置会根据当前版本自动显示。</p></div></form></div>
+    </section>
+
+    <section id="page-models" class="page" aria-labelledby="modelsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">MODEL STUDIO</p><h1 id="modelsTitle">各司其职，思考有度。</h1><p class="subtle">每个模型独立配置地址、密钥、提示词、思考模式和上下文。主模型直接看图片、视频画面与表情。</p></div></div>
+      <div id="modelRoles" class="role-grid"></div>
+      <p id="modelRuntimeStatus" class="notice small" role="status">主模型配置将在后续请求中应用，正在处理的请求保留自己的设置。</p>
+      <p id="mainWorkflowSummary" class="notice small">完整短句边生成边发送；接近上下文上限时摘要旧对话。</p>
+      <p class="notice small">思考控制取决于接口：DeepSeek 使用关闭 / low / high / max，千问可设置思考 token 预算。隐藏推理不会发到微信；工具轮次按供应商要求内部保留。上下文按保守估算计入角色卡、图片、工具与输出预留，主模型上限 500,000 token。</p>
+      <form id="modelConfiguration" class="focused-configuration"></form>
+    </section>
+
+    <section id="page-moments" class="page" aria-labelledby="momentsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">MOMENTS RHYTHM</p><h1 id="momentsTitle">一条看完，再看下一条。</h1><p class="subtle">主模型看当前动态，拟真模型结合相关聊天与互动记录决策，执行核验后再看下一条。新评论独立轮询；私聊空闲后才回复。</p></div><button class="button" data-go="workspace">查看互动状态 ↗</button></div>
+      <div class="moment-steps"><span>01 看动态与媒体</span><span>02 决定是否回应</span><span>03 执行并核验</span><span>04 看下一条</span></div>
+      <article class="card"><div class="card-head"><h2>首次上线通告</h2><button id="firstOnlinePublish" type="button" class="button" disabled>发布图文通告</button></div>
+        <p class="subtle">用当前角色的口吻向朋友打个招呼，配一张为这条通告专门生成的图片。每个微信账号可发表一次。</p>
+        <p id="firstOnlineResult" class="small subtle" role="status" aria-live="polite"></p></article>
+      <form id="momentsConfiguration" class="focused-configuration"></form>
+      <article class="card"><h2>决策与自动发表</h2><p class="subtle">互动判断和主动发表使用独立模型；上面的轮询开关与时间、次数限制负责执行节奏。</p><button class="button" data-setting="moments_decision_llm_model">调整互动决策模型</button><button class="button" data-setting="autopilot_enabled">调整自动发表</button></article>
+    </section>
+
+    <section id="page-media" class="page" aria-labelledby="mediaTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">IMAGE ATELIER</p><h1 id="mediaTitle">留住形象，也保留想象。</h1><p class="subtle">主模型结合相关聊天、朋友圈及拟真决策创作画面，生图模型负责出图。千问最多3张参考图，Wan按所选模型支持4或9张。</p><p id="referenceLimitHint" class="small subtle"></p></div></div>
+      <article class="card"><div class="card-head"><h2>参考图素材库</h2><button id="refreshReferences" class="button">刷新素材</button></div><form id="referenceUpload" class="asset-upload"><label>参考图<input id="referenceFile" type="file" accept="image/png,image/jpeg,image/webp,image/bmp" required></label><label>素材名称<input id="referenceName" maxlength="80" placeholder="例如：人物正面"></label><label>特征说明<input id="referenceNote" maxlength="2000" placeholder="应保留的形象、衣着或风格"></label><button id="uploadReference" class="button primary" type="submit">加入素材库</button></form><p class="small subtle">上传只保存到本机；选择后的图片在生图时发往你配置的供应商。支持 PNG、JPEG、WebP、BMP，单张 ≤20MB，边长 240–8000 像素。</p><div id="referenceList" class="reference-grid"></div></article>
+      <form id="mediaConfiguration" class="focused-configuration"></form>
+      <button class="button" data-setting="main_llm_model">配置创作主模型 ↗</button>
+    </section>
+
+    <section id="page-voice" class="page" aria-labelledby="voiceTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">VOICE & CHARACTER</p><h1 id="voiceTitle">让声音，也有自己的温度。</h1><p class="subtle">音色、语速、音调和音量随时调整。复刻音色须与合成模型匹配。</p></div></div>
+      <form id="voiceConfiguration" class="focused-configuration"></form>
+      <article class="card"><div class="card-head"><h2>克隆音色管理</h2><button id="refreshVoices" class="button">从 API 读取音色</button></div><p class="small subtle">只有点击创建时，供应商才会读取你填写的公开 HTTPS 录音地址。创建和试听会调用 API 并可能计费；不会自动上传聊天中的录音。</p><form id="voiceClone" class="asset-upload"><label>公开录音地址<input id="cloneURL" type="url" placeholder="https://…/sample.wav" required></label><label>音色前缀<input id="clonePrefix" value="myvoice" pattern="[A-Za-z0-9]{1,10}" maxlength="10" required></label><label>合成模型<input id="cloneModel" placeholder="cosyvoice-v2" required></label><button id="createVoice" class="button primary" type="submit">创建克隆音色</button></form><div id="voiceList" class="voice-list"><p class="subtle small">点击“从 API 读取音色”加载，避免打开页面就调用服务。</p></div></article>
+      <article class="card"><h2>试听当前音色</h2><label class="field-label" for="voicePreviewText">试听文字</label><textarea id="voicePreviewText" maxlength="300" rows="2">你好，今天也要好好照顾自己。</textarea><div class="pending-actions"><button id="previewVoice" class="button">使用已保存的设置试听</button><audio id="voiceAudio" controls hidden></audio></div><p class="small subtle">试听使用已保存的模型、音色、语速、音调和音量；先保存修改再试听。</p></article>
+    </section>
+
+    <section id="page-memory" class="page" aria-labelledby="memoryTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">SHARED MEMORY</p><h1 id="memoryTitle">把值得记住的，留下来。</h1><p class="subtle">共享记忆参与后续对话，可查找、逐条删除或清空。</p></div><button id="clearMemories" class="button danger">清空全部记忆</button></div>
+      <article class="card"><div class="card-head"><h2>角色自己的兴趣</h2><button class="text-button" data-setting="character_interest_seeds">调整基础爱好 ↗</button></div><p id="roleInterests" class="subtle">正在读取当前角色的兴趣。</p></article>
+      <div class="card"><div class="memory-tools"><label class="search"><span aria-hidden="true">⌕</span><input id="memorySearch" type="search" placeholder="搜索记忆内容或来源" aria-label="搜索记忆"></label><button id="refreshMemories" class="button">刷新</button><span id="memoryTotal" class="subtle small">— 条记忆</span></div><div id="memoryList" class="memory-list"></div><div class="pagination"><span id="memoryRange" class="small subtle">—</span><div><button id="memoryPrev" class="button" disabled>上一页</button><button id="memoryNext" class="button" disabled>下一页</button></div></div></div>
+    </section>
+
+    <section id="page-diagnostics" class="page" aria-labelledby="diagnosticsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">SENDER & DEVICES</p><h1 id="diagnosticsTitle">发送之前，先看清状态。</h1><p class="subtle">检查微信窗口、目标确认能力与语音播放设备。</p></div><button id="refreshDiagnostics" class="button primary">重新检查</button></div>
+      <div class="diagnostics-grid"><article class="card"><div class="card-head"><h2>微信 UIA 发送器</h2><span class="badge neutral">只读检查</span></div><p class="subtle small">读取窗口和控件状态，不切换会话、不输入内容、不发送消息。</p><div id="uiaDiagnostics" class="diagnostic-content"></div></article><article class="card"><div class="card-head"><h2>语音播放设备</h2><button id="openSoundSettings" class="text-button">系统声音设置 ↗</button></div><div id="audioDiagnostics" class="diagnostic-content"></div><button class="button" data-setting="vb_cable_device">配置语音设备</button></article></div>
+      <article class="card"><div class="card-head"><h2>联系人名称同步</h2><span id="nameSyncBadge" class="badge neutral">等待状态</span></div><p id="nameSyncStatus" class="subtle">名称同步状态会在桥接启动后更新。</p><div id="nameSyncDetails" class="name-sync-details" hidden></div></article>
+      <article class="card"><div class="card-head"><h2>发送方式与能力</h2><button class="text-button" data-setting="image_send_method">媒体设置 ↗</button></div><div class="capability-grid"><div><span class="capability-icon">文</span><strong>文字与短气泡</strong><p>目标确认后发送，失败返回原因。</p></div><div><span class="capability-icon">图</span><strong>图片与表情包</strong><p>支持文件剪贴板与位图方式。</p></div><div><span class="capability-icon">声</span><strong>合成语音</strong><p>播放设备切换后恢复原设备。</p></div><div><span class="capability-icon">记</span><strong>朋友圈</strong><p>发布前重新核对启用状态。</p></div></div></article>
+    </section>
+
+    <section id="page-logs" class="page" aria-labelledby="logsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">RUNNING LOG</p><h1 id="logsTitle">看见运行的来龙去脉。</h1><p class="subtle">最近 300 行日志，访问凭证自动隐藏。</p></div><button id="exportLogs" class="button">导出当前日志</button></div><article class="card log-card"><div class="log-tools"><label class="search"><span aria-hidden="true">⌕</span><input id="logSearch" type="search" placeholder="搜索日志内容" aria-label="搜索日志"></label><label class="sr-only" for="logLevel">日志级别</label><select id="logLevel"><option value="">全部级别</option value="INFO">信息</option><option value="WARNING">警告</option><option value="ERROR">错误</option><option value="DEBUG">调试</option></select><label class="checkbox-label"><input id="logFollow" type="checkbox" checked>跟随最新</label><button id="refreshLogs" class="button">刷新</button></div><pre id="logOutput" class="log-output" tabindex="0" aria-label="运行日志">等待日志…</pre><div class="log-footer"><span id="logCount">—</span><span>每 3 秒更新 · 页面隐藏时暂停</span></div></article>
+    </section>
+    <footer class="page-footer"><span>WECHAT BOT · 本机工作台</span><span id="lastUpdate">等待状态更新</span></footer>
+    <div id="saveBar" class="save-bar" hidden><div><strong id="saveState">设置已同步</strong><span id="saveHint">凭证留空保持原值；勾选清除才会删除。</span></div><button id="saveConfig" class="button primary" disabled>保存设置<span class="shortcut">Ctrl S</span></button></div>
+  </main>
+  <section id="exitNotice" class="exit-notice card" role="status" aria-labelledby="exitTitle" tabindex="-1" hidden>
+    <p class="eyebrow">微信bot · 会话工作台</p><h1 id="exitTitle">本次会话已结束</h1>
+    <p class="subtle">本包服务正在完成退出，可以关闭此页。下次使用时，请双击包内的“一键启动”。</p>
+  </section>
+  <div id="toastRegion" class="toast-region" role="status" aria-live="polite"></div>
+  <dialog id="confirmDialog"><form method="dialog"><span class="dialog-symbol">☾</span><h2 id="confirmTitle">确认操作</h2><p id="confirmText"></p><div class="dialog-actions"><button class="button" value="cancel">取消</button><button id="confirmProceed" class="button danger" value="confirm">确认</button></div></form></dialog>
+</body>
+</html>

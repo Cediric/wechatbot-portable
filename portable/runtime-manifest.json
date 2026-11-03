@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "uv_version": "0.13.0",
+  "uv_url": "https://github.com/astral-sh/uv/releases/download/0.13.0/uv-x86_64-pc-windows-msvc.zip",
+  "uv_sha256": "088962f9e7b7bd9ea740c04c650b2a21c8928c345bd99ac24350dc924dba656c",
+  "python_request": "3.12.12",
+  "astrbot_version": "4.28.2",
+  "astrbot_wheel": "astrbot-4.28.2-py3-none-any.whl",
+  "astrbot_url": "https://files.pythonhosted.org/packages/fb/76/c3444179b1d6b92fcb41c8f0a05585ea4f727e6afc49037aff7dcb806ebb/astrbot-4.28.2-py3-none-any.whl",
+  "astrbot_sha256": "2d3b5db74da5b5c1aa7e1b5990b3ab4cb5569bc8e6bb331b54ce3d154b1b3530",
+  "ffmpeg_version": "9.0.2",
+  "ffmpeg_archive": "ffmpeg-9.0.2-essentials_build.zip",
+  "ffmpeg_url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip",
+  "ffmpeg_sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+  "os": "Windows 10 64-bit or newer",
+  "license_sources": {
+    "uv": "https://github.com/astral-sh/uv/blob/0.13.0/LICENSE-MIT",
+    "astrbot": "https://github.com/AstrBotDevs/AstrBot/blob/v4.28.2/LICENSE",
+    "python": "https://docs.python.org/3/license.html",
+    "ffmpeg": "https://ffmpeg.org/legal.html"
+  },
+  "python_archive": "python-3.12.12-windows-x64.zip",
+  "python_archive_sha256": "0a5402519e7afbaf39a582b335ae4ecd4b425f54b44c2bdba852b5f587855ad4",
+  "python_original_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.12.12%2B20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+  "python_original_sha256": "93bf8e8c05ede0077b197a29c99ebdaf253497f27190097494265150b4e70ba8",
+  "python_repack_note": "Original official distribution files repacked byte-for-byte into a Windows PowerShell compatible ZIP; no interpreter/library modifications.",
+  "vc_runtime_version": "14.44.35211.0",
+  "vc_runtime_url": "https://download.visualstudio.microsoft.com/download/pr/bd1c8d9d-ba95-4eee-bc6e-df1fcc876373/CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B/VC_redist.x64.exe",
+  "vc_runtime_sha256": "cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b",
+  "voice_driver_url": "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip",
+  "voice_driver_sha256": "b950e39f01af1d04ea623c8f6d8eb9b6ea5c477c637295fabf20631c85116bfb"
+}

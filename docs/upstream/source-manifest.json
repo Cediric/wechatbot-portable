@@ -1,0 +1,9 @@
+{
+  "retrieved": "2026-10-11",
+  "official": "https://github.com/hicccc77/WeFlow",
+  "sha256": {
+    "chatService.ts": "3eb8aa8b72bd552436225ab1b659d76480f5d30798ec5721ffd29b47ace1cf46",
+    "httpService.ts": "da8e71ee242e22fb41f3809c686d8b3d9fbd37b9f85ce297745bdc8beb953a40",
+    "messagePushService.ts": "60c67630791095429879ca9df12a50b96f721414bb230ae0a7f8468e3399621a"
+  }
+}

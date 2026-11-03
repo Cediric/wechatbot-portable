@@ -1,0 +1,6 @@
+name: wechatbot_profile
+display_name: 微信bot主模型同步
+desc: 仅本包OneBot平台的多模态主模型参数实时同步；不新增识图模型或第二次回复。
+version: v6.33.0
+author: 微信bot
+repo: ""

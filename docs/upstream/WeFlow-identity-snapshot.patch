@@ -1,0 +1,195 @@
+--- a/electron/services/chatService.ts
++++ b/electron/services/chatService.ts
+@@ -213,6 +213,13 @@
+   'gh_f0a92aa7146c' // 收款助手不出现在通讯录的公众号/服务号分组里
+ ])
+ const CONTACT_CLASSIFICATION_CACHE_VERSION = 'contact-classification-v5'
++
++interface FreshIdentitySnapshotResult {
++  success: boolean
++  contacts?: ContactInfo[]
++  sessions?: Array<{ username: string; displayName: string; type: number }>
++  error?: string
++}
+ 
+ interface GetContactsOptions {
+   lite?: boolean
+@@ -2609,6 +2616,87 @@
+   /**
+    * 获取通讯录列表
+    */
++  private identitySnapshotInFlight: Promise<FreshIdentitySnapshotResult> | null = null
++
++  /** One underlying read and one deadline, even when the native worker hangs. */
++  getFreshIdentitySnapshot(): Promise<FreshIdentitySnapshotResult> {
++    if (this.identitySnapshotInFlight) return this.identitySnapshotInFlight
++    const work = this.readFreshIdentitySnapshot()
++    let timer: ReturnType<typeof setTimeout> | undefined
++    const reply = new Promise<FreshIdentitySnapshotResult>(resolve => {
++      timer = setTimeout(() => resolve({ success: false, error: 'Fresh identity query timed out' }), 2500)
++      void work.then(result => { clearTimeout(timer); resolve(result) }, error => {
++        clearTimeout(timer)
++        resolve({ success: false, error: String(error) })
++      })
++    })
++    this.identitySnapshotInFlight = reply
++    // Keep the settled deadline reply until the actual native read finishes. A
++    // later request must not add another worker RPC or reaction to a hung work.
++    void work.finally(() => {
++      clearTimeout(timer)
++      if (this.identitySnapshotInFlight === reply) this.identitySnapshotInFlight = null
++    }).catch(() => {})
++    return reply
++  }
++
++  /** Fresh, read-only identities. Never use contactsMemoryCache or avatarCache. */
++  private async readFreshIdentitySnapshot(): Promise<FreshIdentitySnapshotResult> {
++    try {
++      const connected = await this.ensureConnected()
++      if (!connected.success) return { success: false, error: connected.error }
++      const accountScope = this.getCacheAccountScope()
++      const epoch = this.accountCacheEpoch
++      // A fixed SELECT performs a fresh contact.db read; no arbitrary client SQL.
++      const contactResult = await wcdbService.execQuery('contact', null, 'SELECT * FROM contact')
++      if (!this.isAccountCacheContextCurrent(accountScope, epoch)) {
++        return { success: false, error: 'Account changed during identity snapshot' }
++      }
++      if (!contactResult.success || !Array.isArray(contactResult.rows)) {
++        return { success: false, error: contactResult.error || 'Fresh contacts unavailable' }
++      }
++      const sessionResult = await wcdbService.getSessions()
++      if (!this.isAccountCacheContextCurrent(accountScope, epoch)) {
++        return { success: false, error: 'Account changed during identity snapshot' }
++      }
++      if (!sessionResult.success || !Array.isArray(sessionResult.sessions)) {
++        return { success: false, error: sessionResult.error || 'Fresh sessions unavailable' }
++      }
++      const validIdentity = (value: unknown): value is string => typeof value === 'string' &&
++        /^[A-Za-z0-9_.@:-]{1,256}$/.test(value) && !['unknown', 'null', 'None'].includes(value)
++      const text = (row: Record<string, any>, fields: string[]): string => {
++        const value = this.getRowField(row, fields)
++        return typeof value === 'string' ? value : ''
++      }
++      const contacts: ContactInfo[] = []
++      const names = new Map<string, string>()
++      for (const row of contactResult.rows as Record<string, any>[]) {
++        const username = text(row, ['username', 'user_name', 'userName'])
++        if (!validIdentity(username)) continue
++        const remark = text(row, ['remark', 'WCDB_CT_remark'])
++        const nickname = text(row, ['nick_name', 'nickName', 'nickname', 'NickName', 'WCDB_CT_nick_name'])
++        const alias = text(row, ['alias', 'WCDB_CT_alias'])
++        const displayName = remark || nickname || alias || username
++        contacts.push({ username, displayName, remark, nickname, alias,
++          type: username.endsWith('@chatroom') ? 'group' : 'friend' })
++        names.set(username, displayName)
++      }
++      const sessions: Array<{ username: string; displayName: string; type: number }> = []
++      for (const row of sessionResult.sessions as Record<string, any>[]) {
++        const username = text(row, ['username', 'user_name', 'userName'])
++        if (!validIdentity(username)) continue
++        // A missing contact remains an ID, never a cached/nickname identity guess.
++        sessions.push({ username, displayName: names.get(username) || username,
++          type: username.endsWith('@chatroom') ? 2 : 1 })
++      }
++      contacts.sort((a, b) => a.username.localeCompare(b.username))
++      sessions.sort((a, b) => a.username.localeCompare(b.username))
++      return { success: true, contacts, sessions }
++    } catch (error) {
++      return { success: false, error: String(error) }
++    }
++  }
++
+   async getContacts(options?: GetContactsOptions): Promise<{ success: boolean; contacts?: ContactInfo[]; error?: string }> {
+     const mode: 'lite' | 'full' = options?.lite ? 'lite' : 'full'
+     const accountScope = this.getCacheAccountScope()
+--- a/electron/services/httpService.ts
++++ b/electron/services/httpService.ts
+@@ -6,7 +6,7 @@
+ import * as fs from 'fs'
+ import * as path from 'path'
+ import { URL } from 'url'
+-import { timingSafeEqual } from 'crypto'
++import { timingSafeEqual, createHash } from 'crypto'
+ import { chatService, Message } from './chatService'
+ import { wcdbService } from './wcdbService'
+ import { ConfigService } from './config'
+@@ -481,6 +481,9 @@
+                 } else {
+                     await this.handlePullMessages(sessionId, url, res)
+                 }
++            } else if (pathname === '/api/v1/identity-snapshot') {
++                if (req.method !== 'GET') return this.sendMethodNotAllowed(res, 'GET')
++                await this.handleIdentitySnapshot(req, res)
+             } else if (pathname === '/api/v1/contacts') {
+                 await this.handleContacts(url, res)
+             } else if (pathname === '/api/v1/group-members') {
+@@ -1262,6 +1265,31 @@
+    * 处理联系人查询
+    * GET /api/v1/contacts?keyword=xxx&limit=100
+    */
++  /** Versioned fresh snapshot extension, behind the existing API token check. */
++  private async handleIdentitySnapshot(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
++    const result = await chatService.getFreshIdentitySnapshot()
++    if (!result.success || !result.contacts || !result.sessions) {
++      this.sendError(res, 503, result.error || 'Fresh identity snapshot unavailable')
++      return
++    }
++    const revision = createHash('sha256').update(JSON.stringify({
++      contacts: result.contacts, sessions: result.sessions
++    })).digest('hex')
++    const etag = `"${revision}"`
++    res.setHeader('ETag', etag)
++    res.setHeader('Cache-Control', 'no-store')
++    res.setHeader('X-WeFlow-Identity-Snapshot', '1')
++    // Read the DB first even for a conditional request; never answer from a cache.
++    if (req.headers['if-none-match'] === etag) {
++      res.writeHead(304)
++      res.end()
++      return
++    }
++    this.sendJson(res, { success: true, version: 1, fresh: true,
++      capabilities: { freshIdentitySnapshot: 1 }, snapshotAt: Date.now(), revision,
++      contacts: result.contacts, sessions: result.sessions })
++  }
++
+   private async handleContacts(url: URL, res: http.ServerResponse): Promise<void> {
+     const keyword = (url.searchParams.get('keyword') || '').trim()
+     const limit = this.parseIntParam(url.searchParams.get('limit'), 100, 1, 10000)
+--- a/electron/services/messagePushService.ts
++++ b/electron/services/messagePushService.ts
+@@ -32,6 +32,10 @@
+   sessionId: string
+   sessionType: 'private' | 'group' | 'official' | 'other'
+   rawid: string
++  senderUsername?: string | null
++  isSend?: number | null
++  localType?: number
++  localId?: number
+   avatarUrl?: string
+   sourceName: string
+   groupName?: string
+@@ -714,6 +718,8 @@
+     const sessionType = this.getSessionType(sessionId, session)
+     const content = this.getMessageDisplayContent(message)
+     const rawid = this.getMessageRawId(message)
++    const identity = { senderUsername: message.senderUsername, isSend: message.isSend,
++      localType: message.localType, localId: message.localId }
+ 
+     const createTime = Number(message.createTime || 0)
+ 
+@@ -727,6 +733,7 @@
+         sessionId,
+         sessionType,
+         rawid,
++        ...identity,
+         avatarUrl,
+         groupName,
+         sourceName,
+@@ -742,6 +749,7 @@
+       sessionId,
+       sessionType,
+       rawid,
++      ...identity,
+       avatarUrl,
+       sourceName: session.displayName || contactInfo?.displayName || sessionId,
+       content,

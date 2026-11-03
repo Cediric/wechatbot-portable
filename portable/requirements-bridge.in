@@ -1,0 +1,11 @@
+requests>=2.31,<3
+websockets>=12,<18
+pygame>=2.5,<3
+mutagen>=1.47,<2
+uiautomation>=2.0.17,<3
+pyperclip>=1.8.2,<2
+Pillow>=10,<13
+pycaw>=20240210,<20270000
+dashscope>=1.26.7,<2
+cryptography>=42,<51
+imageio-ffmpeg==0.6.0
